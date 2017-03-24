@@ -96,6 +96,7 @@ timer_sleep(int64_t ticks) {
     //printf("Start time is %" PRIu64 " ticks.\n", (uint64_t)start);
     list_push_front(&blocked_list, &thread_current()->belem);
     //printf("Added to blocked list.\n");
+    // based off https://knowledgejunk.net/2011/05/06/avoiding-busy-wait-in-timer_sleep-on-pintos/
     enum intr_level old_level = intr_disable();
     thread_block();
     intr_set_level(old_level);
