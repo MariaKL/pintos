@@ -97,9 +97,10 @@ timer_sleep(int64_t ticks) {
     list_push_front(&blocked_list, &thread_current()->belem);
     //printf("Added to blocked list.\n");
     // based off https://knowledgejunk.net/2011/05/06/avoiding-busy-wait-in-timer_sleep-on-pintos/
-    enum intr_level old_level = intr_disable();
+    // and https://github.com/Hindol/pintos/blob/master/devices/timer.c
+    intr_disable();
     thread_block();
-    intr_set_level(old_level);
+    intr_enable();
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
@@ -176,7 +177,7 @@ timer_interrupt(struct intr_frame *args UNUSED) {
         for (e = list_begin(&blocked_list); 
                 e != list_end(&blocked_list); e = list_next(e)) {
             t = (list_entry(e, struct thread, belem));
-            if (timer_ticks() > t->endTime) {
+            if (timer_ticks() >= t->endTime) {
                 list_remove(e);
                 thread_unblock(t); // unblock and add to ready list
                 //printf("Woken up at %" PRIu64 " ticks.\n", (uint64_t)timer_ticks ());
